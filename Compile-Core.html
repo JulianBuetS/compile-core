@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compile-Core</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a5c44;
+            --primary-hover: #3b4a35;
+            --bg-gradient-start: #0f172a;
+            --bg-gradient-end: #020617;
+            --text-primary: #d4c5b9;
+            --text-secondary: #c4b5a7;
+            --text-muted: #a89b8f;
+            --border-color: #0a0a0a;
+            --box-bg: #242623e0;
+            --shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            --core-bg: #0f172a;
+            --parent-bg: #0a0a0a;
+            --sub-bg: #0a0a0a;
+            --sub-sub-bg: #0a0a0a;
+            --accent-color: #a89b8f;
+            --core-accent: #a89b8f;
+            --parent-accent: #a89b8f;
+            --sub-accent: #a89b8f;
+            --sub-sub-accent: #a89b8f;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Ubuntu', sans-serif;
+            color: var(--text-secondary);
+        }
+        body {
+            background: linear-gradient(to bottom, var(--bg-gradient-start), var(--bg-gradient-end));
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 30px;
+            background: rgba(10, 10, 10, 0.6);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            flex: 1;
+        }
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #ffffff;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+        button {
+            background: var(--primary-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            color: var(--text-primary);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: background 0.3s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        #note-list {
+            margin-bottom: 25px;
+        }
+        .note {
+            margin-bottom: 16px;
+            padding: 16px;
+            border-radius: 8px;
+            transition: background 0.3s;
+            border: 1px solid var(--border-color);
+        }
+        .note:hover {
+            background: rgba(15, 15, 15, 0.9);
+        }
+        .note.core {
+            background: var(--core-bg);
+            border-left: 4px solid var(--core-accent);
+        }
+        .note.core > .note-title {
+            color: var(--core-accent);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 18px;
+        }
+        .note.parent {
+            background: var(--parent-bg);
+            border-left: 4px solid var(--parent-accent);
+        }
+        .note.parent > .note-title {
+            color: var(--parent-accent);
+            font-weight: 500;
+        }
+        .note.sub {
+            margin-left: 25px;
+            background: var(--sub-bg);
+            border-left: 4px solid var(--sub-accent);
+        }
+        .note.sub > .note-title {
+            color: var(--sub-accent);
+        }
+        .note.sub-sub {
+            margin-left: 50px;
+            background: var(--sub-sub-bg);
+            border-left: 4px solid var(--sub-sub-accent);
+        }
+        .note.sub-sub > .note-title {
+            color: var(--sub-sub-accent);
+        }
+        .note-title {
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-block;
+            transition: color 0.3s;
+        }
+        .note-title:hover {
+            color: var(--text-primary);
+        }
+        .note-content {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(10, 10, 10, 0.8);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .note-content input, .note-content textarea {
+            width: 100%;
+            background: rgba(15, 15, 15, 0.9);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            transition: border-color 0.3s;
+        }
+        .note-content input:focus, .note-content textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .note-content textarea.core-textarea {
+            min-height: 400px;
+            color: var(--text-primary);
+        }
+        .note-content textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+        .note-content input[readonly], .note-content textarea[readonly] {
+            border: none;
+            cursor: default;
+            background: transparent;
+        }
+        .note-actions {
+            margin-top: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .create-section, .edit-section {
+            padding: 25px;
+            background: var(--box-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-top: 25px;
+        }
+        .create-section h2, .edit-section h2 {
+            font-size: 20px;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        input, textarea {
+            width: 100%;
+            background: rgba(15, 15, 15, 0.9);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .sortable-ghost {
+            opacity: 0.4;
+            background: rgba(15, 15, 15, 0.9);
+        }
+        .sub-create, .sub-sub-create {
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(10, 10, 10, 0.8);
+            border-radius: 6px;
+            display: none;
+            border: 1px solid var(--border-color);
+        }
+        .sub-create input, .sub-create textarea, .sub-sub-create input, .sub-sub-create textarea {
+            font-size: 14px;
+        }
+        .sortable-parent {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            background: rgba(32, 38, 30, 0.5);
+        }
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4a5c44;
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.9em;
+            border-top: 1px solid var(--border-color);
+            margin-top: 30px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .controls {
+                flex-wrap: wrap;
+            }
+            button {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+    <div class="container">
+        <h1>Compile-Core</h1>
+        <div class="controls">
+            <button onclick="expandAll()"><i class="fas fa-expand-alt"></i> Desplegar Todo</button>
+            <button onclick="collapseAll()"><i class="fas fa-compress-alt"></i> Colapsar Todo</button>
+            <button onclick="exportarPagina()"><i class="fas fa-file-export"></i> Exportar</button>
+        </div>
+        <div id="note-list" class="ui-sortable">
+            <!-- Las notas se generarán dinámicamente con JavaScript -->
+        </div>
+        <div class="create-section">
+            <h2>Crear Nuevo Documento Padre</h2>
+            <input type="text" id="new-title" placeholder="Título del documento">
+            <textarea id="new-content" placeholder="Contenido del documento"></textarea>
+            <button onclick="createParentNote()"><i class="fas fa-plus"></i> Crear Documento Padre</button>
+        </div>
+        <div class="edit-section">
+            <h2>Editar Datos</h2>
+            <input type="text" id="edit-title" placeholder="Título del documento" value="Compilación de Documentos">
+            <input type="text" id="edit-description" placeholder="Descripción" value="Biblioteca jerárquica navegable">
+            <input type="text" id="edit-compiler" placeholder="Compilador" value="Julián Buet Scarcella">
+            <input type="date" id="edit-date" placeholder="Fecha" value="2025-09-15">
+            <textarea id="edit-authors" placeholder="Autores (uno por línea)">Julián Buet Scarcella</textarea>
+            <input type="text" id="edit-version" placeholder="Versión" value="1.0.0">
+            <button onclick="updateMetadata()"><i class="fas fa-save"></i> Guardar Metadatos</button>
+        </div>
+    </div>
+    <footer>
+        <p>© Julián B.S. 2025</p>
+    </footer>
+    <div id="notification" class="notification">
+        <i class="fas fa-check-circle"></i>
+        <span>¡Operación completada!</span>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
+    <script>
+        // Objeto global para metadatos
+        let metadata = {
+            title: "Compilación de Documentos",
+            description: "Biblioteca jerárquica navegable",
+            compiler: "Julián Buet Scarcella",
+            date: "2025-09-15",
+            authors: ["Julián Buet Scarcella"],
+            authors_raw: "Julián Buet Scarcella",
+            version: "1.0.0"
+        };
+
+        // Particle effect (sin cambios)
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const particles = [];
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.4 - 0.2;
+                this.speedY = Math.random() * 0.4 - 0.2;
+                this.opacity = Math.random() * 0.3 + 0.1;
+            }
+            
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            
+            draw() {
+                ctx.fillStyle = `rgba(168, 155, 143, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function initParticles() {
+            for (let i = 0; i < 60; i++) {
+                particles.push(new Particle());
+            }
+        }
+        
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        
+        initParticles();
+        animateParticles();
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.querySelector('span').textContent = message;
+            notification.style.display = 'flex';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Datos iniciales de notas
+        let notes = [
+            {
+                title: "¿Qué es Lorem Ipsum?",
+                content: "Al contrario del pensamiento popular, el texto de Lorem Ipsum no es simplemente texto aleatorio. Tiene sus raíces en una pieza clásica de la literatura del Latín, que data del año 45 antes de Cristo, haciendo que este adquiera más de 2000 años de antigüedad.\nLorem Ipsum es simplemente el texto de relleno de las imprentas y archivos de texto. Lorem Ipsum ha sido el texto de relleno estándar de las industrias desde el año 1500, cuando un impresor desconocido usó una galería de textos y los mezcló de tal manera que logró hacer un libro de textos especimen. No sólo sobrevivió 500 años, sino que también ingresó como texto de relleno en documentos electrónicos, quedando esencialmente igual al original. Fue popularizado en los 60s con la creación de las hojas \"Letraset\", las cuales contenían pasajes de Lorem Ipsum, y más recientemente con software de autoedición, como por ejemplo Aldus PageMaker, el cual incluye versiones de Lorem Ipsum.",
+                isSub: false,
+                isSubSub: false
+            },
+            {
+                title: "Definición",
+                content: "Lorem Ipsum: \"Neque porro quisquam est qui dolorem ipsum porque dolor sit amet, consectetur, adipisci velit...\" - Nadie ama al dolor, simplemente por que es dolor\".",
+                isSub: false,
+                isSubSub: false
+            },
+            {
+                title: "¿Por qué lo usamos?",
+                content: "Es un hecho establecido hace demasiado tiempo que un lector se distraerá con el contenido del texto de un sitio mientras que mira su diseño. El punto de usar Lorem Ipsum es que tiene una distribución más o menos normal de las letras, al contrario de usar textos como por ejemplo \"Contenido aquí, contenido aquí\".",
+                isSub: true,
+                isSubSub: false
+            },
+            {
+                title: "Aplicaciones Prácticas",
+                content: "Este elemento textual sirve para infinidad de cuestiones relativas a pruebas de texto y funcionalidad.",
+                isSub: true,
+                isSubSub: true
+            },
+            {
+                title: "Traducción de H. Rackham",
+                content: "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure?",
+                isSub: false,
+                isSubSub: false
+            }
+        ];
+        
+        // Actualizar metadatos
+        function updateMetadata() {
+            const title = document.getElementById('edit-title').value.trim();
+            const description = document.getElementById('edit-description').value.trim();
+            const compiler = document.getElementById('edit-compiler').value.trim();
+            const date = document.getElementById('edit-date').value;
+            const authors_raw = document.getElementById('edit-authors').value.trim();
+            const version = document.getElementById('edit-version').value.trim();
+
+            if (!title || !description || !compiler || !date || !authors_raw || !version) {
+                showNotification("Todos los campos de metadatos son obligatorios");
+                return;
+            }
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                showNotification("La fecha debe estar en formato YYYY-MM-DD");
+                return;
+            }
+
+            metadata.title = title;
+            metadata.description = description;
+            metadata.compiler = compiler;
+            metadata.date = date;
+            metadata.authors = authors_raw.split('\n').filter(a => a.trim());
+            metadata.authors_raw = authors_raw;
+            metadata.version = version;
+
+            renderNotes();
+            showNotification("Metadatos actualizados correctamente");
+        }
+
+        // Listeners para metadatos
+        function setupMetadataListeners() {
+            ['edit-title', 'edit-description', 'edit-compiler', 'edit-date', 'edit-authors', 'edit-version'].forEach(id => {
+                document.getElementById(id).addEventListener('change', updateMetadata);
+            });
+        }
+
+        // Generar contenido YAML
+        function generateCoreContent() {
+            let parentIndex = 0;
+            let subIndex = 0;
+            let subSubIndex = 0;
+            let currentParentIndex = 0;
+            let currentSubIndex = 0;
+            let hasSubs = false;
+            let hasSubSubs = false;
+            let yamlContent = `---
+title: ${metadata.title}
+description: ${metadata.description}
+compiler: ${metadata.compiler}
+date: ${metadata.date}
+authors:
+${metadata.authors.map(a => `  - ${a.replace(/"/g, '\\"')}`).join('\n')}
+version: ${metadata.version}
+documents:
+`;
+            
+            notes.forEach((note, index) => {
+                if (!note.isSub && !note.isSubSub) {
+                    parentIndex++;
+                    subIndex = 0;
+                    subSubIndex = 0;
+                    currentParentIndex = parentIndex;
+                    yamlContent += `  - id: doc-${parentIndex}\n    title: ${note.title.replace(/"/g, '\\"')}\n`;
+                } else if (note.isSub && !note.isSubSub) {
+                    if (!hasSubs) {
+                        yamlContent += `    subdocuments:\n`;
+                        hasSubs = true;
+                    }
+                    subIndex++;
+                    currentSubIndex = subIndex;
+                    yamlContent += `      - id: doc-${currentParentIndex}${String.fromCharCode(97 + subIndex - 1)}\n        title: ${note.title.replace(/"/g, '\\"')}\n`;
+                } else if (note.isSubSub) {
+                    if (!hasSubSubs) {
+                        yamlContent += `        sub-subdocuments:\n`;
+                        hasSubSubs = true;
+                    }
+                    subSubIndex++;
+                    yamlContent += `          - id: doc-${currentParentIndex}${String.fromCharCode(97 + currentSubIndex - 1)}${String.fromCharCode(66 + subSubIndex - 1)}\n            title: ${note.title.replace(/"/g, '\\"')}\n`;
+                }
+            });
+            
+            yamlContent += `---
+
+=Índice=
+`;
+            
+            parentIndex = 0;
+            subIndex = 0;
+            subSubIndex = 0;
+            notes.forEach((note, index) => {
+                if (!note.isSub && !note.isSubSub) {
+                    parentIndex++;
+                    subIndex = 0;
+                    subSubIndex = 0;
+                    yamlContent += `==${parentIndex}. ${note.title}== (#doc-${parentIndex})\n`;
+                } else if (note.isSub && !note.isSubSub) {
+                    subIndex++;
+                    subSubIndex = 0;
+                    yamlContent += `===${parentIndex}${String.fromCharCode(97 + subIndex - 1)}. ${note.title}=== (#doc-${parentIndex}${String.fromCharCode(97 + subIndex - 1)})\n`;
+                } else if (note.isSubSub) {
+                    subSubIndex++;
+                    yamlContent += `====${parentIndex}${String.fromCharCode(97 + subIndex - 1)}${String.fromCharCode(66 + subSubIndex - 1)}. ${note.title}==== (#doc-${parentIndex}${String.fromCharCode(97 + subIndex - 1)}${String.fromCharCode(66 + subSubIndex - 1)})\n`;
+                }
+            });
+            
+            yamlContent += "-------------------------------\n\n";
+            
+            parentIndex = 0;
+            subIndex = 0;
+            subSubIndex = 0;
+            notes.forEach((note, index) => {
+                if (!note.isSub && !note.isSubSub) {
+                    parentIndex++;
+                    subIndex = 0;
+                    subSubIndex = 0;
+                    if (parentIndex > 1) {
+                        yamlContent += "-------------------------------\n\n";
+                    }
+                    yamlContent += `==${parentIndex}. ${note.title}== [#doc-${parentIndex}]\n${note.content}\n`;
+                } else if (note.isSub && !note.isSubSub) {
+                    subIndex++;
+                    subSubIndex = 0;
+                    yamlContent += `===${parentIndex}${String.fromCharCode(97 + subIndex - 1)}. ${note.title}=== [#doc-${parentIndex}${String.fromCharCode(97 + subIndex - 1)}]\n${note.content}\n`;
+                } else if (note.isSubSub) {
+                    subSubIndex++;
+                    yamlContent += `====${parentIndex}${String.fromCharCode(97 + subIndex - 1)}${String.fromCharCode(66 + subSubIndex - 1)}. ${note.title}==== [#doc-${parentIndex}${String.fromCharCode(97 + subIndex - 1)}${String.fromCharCode(66 + subSubIndex - 1)}]\n${note.content}\n`;
+                }
+            });
+            yamlContent += "-------------------------------\n";
+            
+            return yamlContent;
+        }
+        
+        function renderNotes() {
+            const noteList = document.getElementById('note-list');
+            noteList.innerHTML = '';
+            
+            const coreElement = document.createElement('div');
+            coreElement.className = 'note core';
+            coreElement.dataset.index = 'core';
+            coreElement.innerHTML = `
+                <div class="note-title" onclick="toggleNote('core')">0. BIBLIO</div>
+                <div class="note-content">
+                    <textarea class="core-textarea" readonly>${generateCoreContent()}</textarea>
+                    <div class="note-actions">
+                        <button onclick="exportCore()"><i class="fas fa-file-export"></i> Exportar (.txt)</button>
+                    </div>
+                </div>
+            `;
+            noteList.appendChild(coreElement);
+            
+            let parentIndex = 0;
+            let subIndex = 0;
+            let subSubIndex = 0;
+            let parentContainer = null;
+            let subContainer = null;
+            let currentParentIndex = 0;
+            let currentSubIndex = 0;
+            
+            notes.forEach((note, index) => {
+                if (!note.isSub && !note.isSubSub) {
+                    parentIndex++;
+                    subIndex = 0;
+                    subSubIndex = 0;
+                    currentParentIndex = parentIndex;
+                    parentContainer = document.createElement('div');
+                    parentContainer.className = 'sortable-parent';
+                    parentContainer.dataset.parentIndex = index;
+                    
+                    const noteElement = document.createElement('div');
+                    noteElement.className = 'note parent';
+                    noteElement.dataset.index = index;
+                    noteElement.innerHTML = `
+                        <div class="note-title" onclick="toggleNote(${index})">${parentIndex}. ${note.title}</div>
+                        <div class="note-content">
+                            <input type="text" class="note-title-input" value="${note.title}" readonly>
+                            <textarea readonly>${note.content}</textarea>
+                            <div class="note-actions">
+                                <button onclick="editNote(${index})"><i class="fas fa-edit"></i> Editar</button>
+                                <button onclick="saveNoteChanges(${index})"><i class="fas fa-save"></i> Guardar Cambios</button>
+                                <button onclick="exportNote(${index})"><i class="fas fa-file-export"></i> Exportar (.txt)</button>
+                                <button onclick="deleteNote(${index})"><i class="fas fa-trash"></i> Eliminar</button>
+                                <button onclick="toggleSubCreate(${index})"><i class="fas fa-plus-circle"></i> Crear Sub-Documento</button>
+                                <div class="sub-create" data-index="${index}">
+                                    <input type="text" class="sub-title" placeholder="Título del sub-documento">
+                                    <textarea class="sub-content" placeholder="Contenido del sub-documento"></textarea>
+                                    <button onclick="createSubNote(${index})"><i class="fas fa-plus"></i> Crear</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    parentContainer.appendChild(noteElement);
+                    noteList.appendChild(parentContainer);
+                } else if (note.isSub && !note.isSubSub) {
+                    subIndex++;
+                    subSubIndex = 0;
+                    currentSubIndex = subIndex;
+                    subContainer = document.createElement('div');
+                    subContainer.className = 'sortable-sub';
+                    subContainer.dataset.subIndex = index;
+                    
+                    const noteElement = document.createElement('div');
+                    noteElement.className = 'note sub';
+                    noteElement.dataset.index = index;
+                    noteElement.innerHTML = `
+                        <div class="note-title" onclick="toggleNote(${index})">${currentParentIndex}${String.fromCharCode(97 + subIndex - 1)}. ${note.title}</div>
+                        <div class="note-content">
+                            <input type="text" class="note-title-input" value="${note.title}" readonly>
+                            <textarea readonly>${note.content}</textarea>
+                            <div class="note-actions">
+                                <button onclick="editNote(${index})"><i class="fas fa-edit"></i> Editar</button>
+                                <button onclick="saveNoteChanges(${index})"><i class="fas fa-save"></i> Guardar Cambios</button>
+                                <button onclick="exportNote(${index})"><i class="fas fa-file-export"></i> Exportar (.txt)</button>
+                                <button onclick="deleteNote(${index})"><i class="fas fa-trash"></i> Eliminar</button>
+                                <button onclick="toggleSubSubCreate(${index})"><i class="fas fa-plus-circle"></i> Crear Sub-Sub-Documento</button>
+                                <div class="sub-sub-create" data-index="${index}">
+                                    <input type="text" class="sub-sub-title" placeholder="Título del sub-sub-documento">
+                                    <textarea class="sub-sub-content" placeholder="Contenido del sub-sub-documento"></textarea>
+                                    <button onclick="createSubSubNote(${index})"><i class="fas fa-plus"></i> Crear</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    subContainer.appendChild(noteElement);
+                    parentContainer.appendChild(subContainer);
+                } else if (note.isSubSub) {
+                    subSubIndex++;
+                    const noteElement = document.createElement('div');
+                    noteElement.className = 'note sub-sub';
+                    noteElement.dataset.index = index;
+                    noteElement.innerHTML = `
+                        <div class="note-title" onclick="toggleNote(${index})">${currentParentIndex}${String.fromCharCode(97 + currentSubIndex - 1)}${String.fromCharCode(66 + subSubIndex - 1)}. ${note.title}</div>
+                        <div class="note-content">
+                            <input type="text" class="note-title-input" value="${note.title}" readonly>
+                            <textarea readonly>${note.content}</textarea>
+                            <div class="note-actions">
+                                <button onclick="editNote(${index})"><i class="fas fa-edit"></i> Editar</button>
+                                <button onclick="saveNoteChanges(${index})"><i class="fas fa-save"></i> Guardar Cambios</button>
+                                <button onclick="exportNote(${index})"><i class="fas fa-file-export"></i> Exportar (.txt)</button>
+                                <button onclick="deleteNote(${index})"><i class="fas fa-trash"></i> Eliminar</button>
+                            </div>
+                        </div>
+                    `;
+                    subContainer.appendChild(noteElement);
+                }
+            });
+            
+            $("#note-list").sortable({
+                items: "> .sortable-parent",
+                handle: ".note.parent",
+                update: function() {
+                    const newOrder = [];
+                    $("#note-list .sortable-parent").each(function() {
+                        const parentIndex = parseInt($(this).data('parentIndex'));
+                        newOrder.push(notes[parentIndex]);
+                        $(this).find('.sortable-sub').each(function() {
+                            const subIndex = parseInt($(this).data('subIndex'));
+                            newOrder.push(notes[subIndex]);
+                            $(this).find('.note.sub-sub').each(function() {
+                                const subSubIndex = parseInt($(this).data('index'));
+                                newOrder.push(notes[subSubIndex]);
+                            });
+                        });
+                    });
+                    notes = newOrder;
+                    renderNotes();
+                    showNotification("Orden actualizado correctamente");
+                }
+            });
+            
+            $(".sortable-sub").sortable({
+                items: "> .note.sub-sub",
+                handle: ".note-title",
+                update: function() {
+                    const newOrder = [];
+                    $("#note-list .sortable-parent").each(function() {
+                        const parentIndex = parseInt($(this).data('parentIndex'));
+                        newOrder.push(notes[parentIndex]);
+                        $(this).find('.sortable-sub').each(function() {
+                            const subIndex = parseInt($(this).data('subIndex'));
+                            newOrder.push(notes[subIndex]);
+                            $(this).find('.note.sub-sub').each(function() {
+                                const subSubIndex = parseInt($(this).data('index'));
+                                newOrder.push(notes[subSubIndex]);
+                            });
+                        });
+                    });
+                    notes = newOrder;
+                    renderNotes();
+                    showNotification("Orden de sub-sub-documentos actualizado");
+                }
+            });
+        }
+        
+        function toggleNote(index) {
+            const content = document.querySelector(`.note[data-index="${index}"] .note-content`);
+            content.style.display = content.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        function toggleSubCreate(index) {
+            const subCreate = document.querySelector(`.sub-create[data-index="${index}"]`);
+            subCreate.style.display = subCreate.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        function toggleSubSubCreate(index) {
+            const subSubCreate = document.querySelector(`.sub-sub-create[data-index="${index}"]`);
+            subSubCreate.style.display = subSubCreate.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        function createParentNote() {
+            const title = document.getElementById('new-title').value.trim();
+            const content = document.getElementById('new-content').value;
+            if (title) {
+                notes.push({ title, content, isSub: false, isSubSub: false });
+                renderNotes();
+                document.getElementById('new-title').value = '';
+                document.getElementById('new-content').value = '';
+                showNotification("Documento creado correctamente");
+            } else {
+                showNotification("El título no puede estar vacío");
+            }
+        }
+        
+        function createSubNote(parentIndex) {
+            const subCreate = document.querySelector(`.sub-create[data-index="${parentIndex}"]`);
+            const title = subCreate.querySelector('.sub-title').value.trim();
+            const content = subCreate.querySelector('.sub-content').value;
+            if (title) {
+                // Buscar el índice del último sub o sub-sub del padre
+                let insertIndex = parentIndex + 1;
+                for (let i = parentIndex + 1; i < notes.length; i++) {
+                    if (!notes[i].isSub || (notes[i].isSub && !notes[i].isSubSub && i < notes.length - 1 && !notes[i + 1].isSub && !notes[i + 1].isSubSub)) {
+                        break;
+                    }
+                    insertIndex = i + 1;
+                }
+                notes.splice(insertIndex, 0, { title, content, isSub: true, isSubSub: false });
+                renderNotes();
+                subCreate.querySelector('.sub-title').value = '';
+                subCreate.querySelector('.sub-content').value = '';
+                subCreate.style.display = 'none';
+                showNotification("Sub-documento creado correctamente");
+            } else {
+                showNotification("El título no puede estar vacío");
+            }
+        }
+        
+        function createSubSubNote(subIndex) {
+            const subSubCreate = document.querySelector(`.sub-sub-create[data-index="${subIndex}"]`);
+            const title = subSubCreate.querySelector('.sub-sub-title').value.trim();
+            const content = subSubCreate.querySelector('.sub-sub-content').value;
+            if (title) {
+                // Buscar el índice del último sub-sub del subdocumento
+                let insertIndex = subIndex + 1;
+                for (let i = subIndex + 1; i < notes.length; i++) {
+                    if (!notes[i].isSubSub || (notes[i].isSub && !notes[i].isSubSub && i < notes.length - 1 && (!notes[i + 1].isSub || !notes[i + 1].isSubSub))) {
+                        break;
+                    }
+                    insertIndex = i + 1;
+                }
+                notes.splice(insertIndex, 0, { title, content, isSub: true, isSubSub: true });
+                renderNotes();
+                subSubCreate.querySelector('.sub-sub-title').value = '';
+                subSubCreate.querySelector('.sub-sub-content').value = '';
+                subSubCreate.style.display = 'none';
+                showNotification("Sub-sub-documento creado correctamente");
+            } else {
+                showNotification("El título no puede estar vacío");
+            }
+        }
+        
+        function editNote(index) {
+            const content = document.querySelector(`.note[data-index="${index}"] .note-content`);
+            const titleInput = document.querySelector(`.note[data-index="${index}"] .note-title-input`);
+            const textarea = document.querySelector(`.note[data-index="${index}"] textarea`);
+            titleInput.removeAttribute('readonly');
+            textarea.removeAttribute('readonly');
+            content.style.display = 'block';
+            titleInput.focus();
+        }
+        
+        function saveNoteChanges(index) {
+            const note = notes[index];
+            const titleInput = document.querySelector(`.note[data-index="${index}"] .note-title-input`);
+            const textarea = document.querySelector(`.note[data-index="${index}"] textarea`);
+            const newTitle = titleInput.value.trim();
+            if (newTitle) {
+                note.title = newTitle;
+                note.content = textarea.value;
+                titleInput.setAttribute('readonly', 'true');
+                textarea.setAttribute('readonly', 'true');
+                renderNotes();
+                showNotification("Cambios guardados correctamente");
+            } else {
+                showNotification("El título no puede estar vacío");
+            }
+        }
+        
+        function exportNote(index) {
+            const note = notes[index];
+            const blob = new Blob([`${note.title}\n\n${note.content}`], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${note.title}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification("Documento exportado correctamente");
+        }
+        
+        function exportCore() {
+            const coreContent = generateCoreContent();
+            const blob = new Blob([coreContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'CompilacionDocumentos.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification("Compilación exportada correctamente");
+        }
+        
+        function deleteNote(index) {
+            if (confirm("¿Estás seguro de que quieres eliminar este documento?")) {
+                notes.splice(index, 1);
+                renderNotes();
+                showNotification("Documento eliminado correctamente");
+            }
+        }
+        
+        function expandAll() {
+            document.querySelectorAll('.note-content').forEach(content => {
+                content.style.display = 'block';
+            });
+            showNotification("Todos los documentos desplegados");
+        }
+        
+        function collapseAll() {
+            document.querySelectorAll('.note-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            showNotification("Todos los documentos colapsados");
+        }
+        
+        function exportarPagina() {
+            const serializer = new XMLSerializer();
+            const doctype = document.doctype;
+            let htmlContent = '';
+            
+            if (doctype) {
+                htmlContent = '<!DOCTYPE ' + doctype.name + 
+                    (doctype.publicId ? ' PUBLIC "' + doctype.publicId + '"' : '') + 
+                    (!doctype.publicId && doctype.systemId ? ' SYSTEM' : '') + 
+                    (doctype.systemId ? ' "' + doctype.systemId + '"' : '') + '>\n';
+            } else {
+                htmlContent = '<!DOCTYPE html>\n';
+            }
+            
+            htmlContent += serializer.serializeToString(document.documentElement);
+            
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Compile-Core.html';
+            a.setAttribute('download', 'CompileCore.html');
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+            showNotification("Página exportada como CompileCore.html");
+        }
+        
+        window.onload = function() {
+            renderNotes();
+            setupMetadataListeners();
+        };
+    </script>
+</body>
+</html>
