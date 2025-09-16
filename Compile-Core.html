@@ -207,7 +207,7 @@
             padding-bottom: 10px;
             border-bottom: 1px solid var(--border-color);
         }
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             background: rgba(15, 15, 15, 0.9);
             border: 1px solid var(--border-color);
@@ -218,7 +218,7 @@
             color: var(--text-primary);
             transition: border-color 0.3s;
         }
-        input:focus, textarea:focus {
+        input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: var(--accent-color);
         }
@@ -278,6 +278,34 @@
             border-top: 1px solid var(--border-color);
             margin-top: 30px;
         }
+        .metadata-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .metadata-section h3 {
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .link-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .link-display:hover {
+            color: var(--text-primary);
+        }
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -291,6 +319,9 @@
             button {
                 font-size: 12px;
                 padding: 6px 12px;
+            }
+            .metadata-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -311,6 +342,29 @@
             <h2>Crear Nuevo Documento Padre</h2>
             <input type="text" id="new-title" placeholder="Título del documento">
             <textarea id="new-content" placeholder="Contenido del documento"></textarea>
+            
+            <div class="metadata-section">
+                <h3>Metadatos (Opcional)</h3>
+                <div class="metadata-grid">
+                    <input type="text" id="new-authors" placeholder="Autores (separados por comas)">
+                    <input type="text" id="new-compiler" placeholder="Compilador">
+                    <input type="date" id="new-date" placeholder="Fecha">
+                    <input type="text" id="new-version" placeholder="Versión">
+                    <input type="text" id="new-isbn" placeholder="ISBN">
+                    <input type="text" id="new-publisher" placeholder="Editorial">
+                    <input type="url" id="new-link" placeholder="Enlace web (URL)">
+                    <select id="new-type">
+                        <option value="">Seleccionar tipo</option>
+                        <option value="paper">Paper</option>
+                        <option value="book">Book</option>
+                        <option value="quote">Quote</option>
+                        <option value="compilation">Compilation</option>
+                        <option value="code">Code</option>
+                        <option value="article">Article</option>
+                    </select>
+                </div>
+            </div>
+            
             <button onclick="createParentNote()"><i class="fas fa-plus"></i> Crear Documento Padre</button>
         </div>
         <div class="edit-section">
@@ -415,13 +469,25 @@
                 title: "¿Qué es Lorem Ipsum?",
                 content: "Al contrario del pensamiento popular, el texto de Lorem Ipsum no es simplemente texto aleatorio. Tiene sus raíces en una pieza clásica de la literatura del Latín, que data del año 45 antes de Cristo, haciendo que este adquiera más de 2000 años de antigüedad.\nLorem Ipsum es simplemente el texto de relleno de las imprentas y archivos de texto. Lorem Ipsum ha sido el texto de relleno estándar de las industrias desde el año 1500, cuando un impresor desconocido usó una galería de textos y los mezcló de tal manera que logró hacer un libro de textos especimen. No sólo sobrevivió 500 años, sino que también ingresó como texto de relleno en documentos electrónicos, quedando esencialmente igual al original. Fue popularizado en los 60s con la creación de las hojas \"Letraset\", las cuales contenían pasajes de Lorem Ipsum, y más recientemente con software de autoedición, como por ejemplo Aldus PageMaker, el cual incluye versiones de Lorem Ipsum.",
                 isSub: false,
-                isSubSub: false
+                isSubSub: false,
+                metadata: {
+                    authors: ["Autor Desconocido"],
+                    type: "article",
+                    date: "2023-01-15",
+                    link: "https://es.lipsum.com/"
+                }
             },
             {
                 title: "Definición",
                 content: "Lorem Ipsum: \"Neque porro quisquam est qui dolorem ipsum porque dolor sit amet, consectetur, adipisci velit...\" - Nadie ama al dolor, simplemente por que es dolor\".",
                 isSub: false,
-                isSubSub: false
+                isSubSub: false,
+                metadata: {
+                    authors: ["Cicerón"],
+                    type: "quote",
+                    date: "2023-02-20",
+                    link: "https://es.wikipedia.org/wiki/Lorem_ipsum"
+                }
             },
             {
                 title: "¿Por qué lo usamos?",
@@ -439,7 +505,15 @@
                 title: "Traducción de H. Rackham",
                 content: "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure?",
                 isSub: false,
-                isSubSub: false
+                isSubSub: false,
+                metadata: {
+                    authors: ["H. Rackham"],
+                    type: "book",
+                    date: "1914-01-01",
+                    publisher: "Loeb Classical Library",
+                    isbn: "978-0674990943",
+                    link: "https://www.loebclassics.com/"
+                }
             }
         ];
         
@@ -480,7 +554,7 @@
             });
         }
 
-        // Generar contenido YAML
+        // Generar contenido YAML con metadatos por documento
         function generateCoreContent() {
             let parentIndex = 0;
             let subIndex = 0;
@@ -562,6 +636,23 @@ documents:
                     if (parentIndex > 1) {
                         yamlContent += "-------------------------------\n\n";
                     }
+                    
+                    // Agregar metadatos del documento si existen
+                    if (note.metadata && Object.keys(note.metadata).length > 0) {
+                        yamlContent += "---\n";
+                        for (const [key, value] of Object.entries(note.metadata)) {
+                            if (key === 'authors' && Array.isArray(value)) {
+                                yamlContent += `${key}:\n`;
+                                value.forEach(author => {
+                                    yamlContent += `  - ${author.replace(/"/g, '\\"')}\n`;
+                                });
+                            } else {
+                                yamlContent += `${key}: ${value}\n`;
+                            }
+                        }
+                        yamlContent += "---\n\n";
+                    }
+                    
                     yamlContent += `==${parentIndex}. ${note.title}== [#doc-${parentIndex}]\n${note.content}\n`;
                 } else if (note.isSub && !note.isSubSub) {
                     subIndex++;
@@ -616,8 +707,22 @@ documents:
                     const noteElement = document.createElement('div');
                     noteElement.className = 'note parent';
                     noteElement.dataset.index = index;
+                    
+                    // Preparar metadatos para mostrar
+                    let metadataDisplay = '';
+                    if (note.metadata && Object.keys(note.metadata).length > 0) {
+                        metadataDisplay = '<div class="metadata-display" style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">';
+                        if (note.metadata.type) metadataDisplay += `Tipo: ${note.metadata.type} | `;
+                        if (note.metadata.authors) metadataDisplay += `Autores: ${Array.isArray(note.metadata.authors) ? note.metadata.authors.join(', ') : note.metadata.authors} | `;
+                        if (note.metadata.date) metadataDisplay += `Fecha: ${note.metadata.date} | `;
+                        if (note.metadata.publisher) metadataDisplay += `Editorial: ${note.metadata.publisher} | `;
+                        if (note.metadata.link) metadataDisplay += `<a href="${note.metadata.link}" target="_blank" class="link-display"><i class="fas fa-external-link-alt"></i> Enlace</a>`;
+                        metadataDisplay += '</div>';
+                    }
+                    
                     noteElement.innerHTML = `
                         <div class="note-title" onclick="toggleNote(${index})">${parentIndex}. ${note.title}</div>
+                        ${metadataDisplay}
                         <div class="note-content">
                             <input type="text" class="note-title-input" value="${note.title}" readonly>
                             <textarea readonly>${note.content}</textarea>
@@ -627,10 +732,33 @@ documents:
                                 <button onclick="exportNote(${index})"><i class="fas fa-file-export"></i> Exportar (.txt)</button>
                                 <button onclick="deleteNote(${index})"><i class="fas fa-trash"></i> Eliminar</button>
                                 <button onclick="toggleSubCreate(${index})"><i class="fas fa-plus-circle"></i> Crear Sub-Documento</button>
+                                <button onclick="toggleParentMetadataEdit(${index})"><i class="fas fa-cog"></i> Editar Datos</button>
                                 <div class="sub-create" data-index="${index}">
                                     <input type="text" class="sub-title" placeholder="Título del sub-documento">
                                     <textarea class="sub-content" placeholder="Contenido del sub-documento"></textarea>
                                     <button onclick="createSubNote(${index})"><i class="fas fa-plus"></i> Crear</button>
+                                </div>
+                                <div class="parent-metadata-edit" data-index="${index}" style="display: none; margin-top: 15px;">
+                                    <h3 style="color: var(--text-primary); margin-bottom: 10px;">Editar Metadatos</h3>
+                                    <div class="metadata-grid">
+                                        <input type="text" class="parent-metadata-authors" placeholder="Autores (separados por comas)" value="${note.metadata && note.metadata.authors ? (Array.isArray(note.metadata.authors) ? note.metadata.authors.join(', ') : note.metadata.authors) : ''}">
+                                        <input type="text" class="parent-metadata-compiler" placeholder="Compilador" value="${note.metadata && note.metadata.compiler ? note.metadata.compiler : ''}">
+                                        <input type="date" class="parent-metadata-date" placeholder="Fecha" value="${note.metadata && note.metadata.date ? note.metadata.date : ''}">
+                                        <input type="text" class="parent-metadata-version" placeholder="Versión" value="${note.metadata && note.metadata.version ? note.metadata.version : ''}">
+                                        <input type="text" class="parent-metadata-isbn" placeholder="ISBN" value="${note.metadata && note.metadata.isbn ? note.metadata.isbn : ''}">
+                                        <input type="text" class="parent-metadata-publisher" placeholder="Editorial" value="${note.metadata && note.metadata.publisher ? note.metadata.publisher : ''}">
+                                        <input type="url" class="parent-metadata-link" placeholder="Enlace web (URL)" value="${note.metadata && note.metadata.link ? note.metadata.link : ''}">
+                                        <select class="parent-metadata-type">
+                                            <option value="">Seleccionar tipo</option>
+                                            <option value="paper" ${note.metadata && note.metadata.type === 'paper' ? 'selected' : ''}>Paper</option>
+                                            <option value="book" ${note.metadata && note.metadata.type === 'book' ? 'selected' : ''}>Book</option>
+                                            <option value="quote" ${note.metadata && note.metadata.type === 'quote' ? 'selected' : ''}>Quote</option>
+                                            <option value="compilation" ${note.metadata && note.metadata.type === 'compilation' ? 'selected' : ''}>Compilation</option>
+                                            <option value="code" ${note.metadata && note.metadata.type === 'code' ? 'selected' : ''}>Code</option>
+                                            <option value="article" ${note.metadata && note.metadata.type === 'article' ? 'selected' : ''}>Article</option>
+                                        </select>
+                                    </div>
+                                    <button onclick="saveParentMetadata(${index})" style="margin-top: 10px;"><i class="fas fa-save"></i> Guardar Metadatos</button>
                                 </div>
                             </div>
                         </div>
@@ -672,7 +800,7 @@ documents:
                 } else if (note.isSubSub) {
                     subSubIndex++;
                     const noteElement = document.createElement('div');
-                    noteElement.className = 'note sub-sub';
+                    noteElement.className = 'note sub-sub'; // Corregido: era 'note.sub-sub'
                     noteElement.dataset.index = index;
                     noteElement.innerHTML = `
                         <div class="note-title" onclick="toggleNote(${index})">${currentParentIndex}${String.fromCharCode(97 + currentSubIndex - 1)}${String.fromCharCode(66 + subSubIndex - 1)}. ${note.title}</div>
@@ -753,14 +881,57 @@ documents:
             subSubCreate.style.display = subSubCreate.style.display === 'block' ? 'none' : 'block';
         }
         
+        function toggleParentMetadataEdit(index) {
+            const metadataEdit = document.querySelector(`.parent-metadata-edit[data-index="${index}"]`);
+            metadataEdit.style.display = metadataEdit.style.display === 'block' ? 'none' : 'block';
+        }
+        
         function createParentNote() {
             const title = document.getElementById('new-title').value.trim();
             const content = document.getElementById('new-content').value;
+            
+            // Capturar metadatos
+            const authors = document.getElementById('new-authors').value.trim();
+            const compiler = document.getElementById('new-compiler').value.trim();
+            const date = document.getElementById('new-date').value;
+            const version = document.getElementById('new-version').value.trim();
+            const isbn = document.getElementById('new-isbn').value.trim();
+            const publisher = document.getElementById('new-publisher').value.trim();
+            const link = document.getElementById('new-link').value.trim();
+            const type = document.getElementById('new-type').value;
+            
             if (title) {
-                notes.push({ title, content, isSub: false, isSubSub: false });
+                const metadata = {};
+                if (authors) metadata.authors = authors.split(',').map(a => a.trim());
+                if (compiler) metadata.compiler = compiler;
+                if (date) metadata.date = date;
+                if (version) metadata.version = version;
+                if (isbn) metadata.isbn = isbn;
+                if (publisher) metadata.publisher = publisher;
+                if (link) metadata.link = link;
+                if (type) metadata.type = type;
+                
+                notes.push({ 
+                    title, 
+                    content, 
+                    isSub: false, 
+                    isSubSub: false,
+                    metadata: metadata 
+                });
+                
                 renderNotes();
                 document.getElementById('new-title').value = '';
                 document.getElementById('new-content').value = '';
+                // Limpiar campos de metadatos
+                document.getElementById('new-authors').value = '';
+                document.getElementById('new-compiler').value = '';
+                document.getElementById('new-date').value = '';
+                document.getElementById('new-version').value = '';
+                document.getElementById('new-isbn').value = '';
+                document.getElementById('new-publisher').value = '';
+                document.getElementById('new-link').value = '';
+                document.getElementById('new-type').value = '';
+                
                 showNotification("Documento creado correctamente");
             } else {
                 showNotification("El título no puede estar vacío");
@@ -842,9 +1013,101 @@ documents:
             }
         }
         
+        function saveParentMetadata(index) {
+            const note = notes[index];
+            const metadataEdit = document.querySelector(`.parent-metadata-edit[data-index="${index}"]`);
+            
+            const authors = metadataEdit.querySelector('.parent-metadata-authors').value.trim();
+            const compiler = metadataEdit.querySelector('.parent-metadata-compiler').value.trim();
+            const date = metadataEdit.querySelector('.parent-metadata-date').value;
+            const version = metadataEdit.querySelector('.parent-metadata-version').value.trim();
+            const isbn = metadataEdit.querySelector('.parent-metadata-isbn').value.trim();
+            const publisher = metadataEdit.querySelector('.parent-metadata-publisher').value.trim();
+            const link = metadataEdit.querySelector('.parent-metadata-link').value.trim();
+            const type = metadataEdit.querySelector('.parent-metadata-type').value;
+            
+            // Actualizar metadatos
+            if (!note.metadata) {
+                note.metadata = {};
+            }
+            
+            if (authors) {
+                note.metadata.authors = authors.split(',').map(a => a.trim());
+            } else {
+                delete note.metadata.authors;
+            }
+            
+            if (compiler) {
+                note.metadata.compiler = compiler;
+            } else {
+                delete note.metadata.compiler;
+            }
+            
+            if (date) {
+                note.metadata.date = date;
+            } else {
+                delete note.metadata.date;
+            }
+            
+            if (version) {
+                note.metadata.version = version;
+            } else {
+                delete note.metadata.version;
+            }
+            
+            if (isbn) {
+                note.metadata.isbn = isbn;
+            } else {
+                delete note.metadata.isbn;
+            }
+            
+            if (publisher) {
+                note.metadata.publisher = publisher;
+            } else {
+                delete note.metadata.publisher;
+            }
+            
+            if (link) {
+                note.metadata.link = link;
+            } else {
+                delete note.metadata.link;
+            }
+            
+            if (type) {
+                note.metadata.type = type;
+            } else {
+                delete note.metadata.type;
+            }
+            
+            // Ocultar el formulario
+            metadataEdit.style.display = 'none';
+            
+            renderNotes();
+            showNotification("Metadatos guardados correctamente");
+        }
+        
         function exportNote(index) {
             const note = notes[index];
-            const blob = new Blob([`${note.title}\n\n${note.content}`], { type: 'text/plain' });
+            let content = `${note.title}\n\n${note.content}`;
+            
+            // Agregar metadatos si existen
+            if (note.metadata && Object.keys(note.metadata).length > 0) {
+                let metadataText = "---\n";
+                for (const [key, value] of Object.entries(note.metadata)) {
+                    if (key === 'authors' && Array.isArray(value)) {
+                        metadataText += `${key}:\n`;
+                        value.forEach(author => {
+                            metadataText += `  - ${author}\n`;
+                        });
+                    } else {
+                        metadataText += `${key}: ${value}\n`;
+                    }
+                }
+                metadataText += "---\n\n";
+                content = metadataText + content;
+            }
+            
+            const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
